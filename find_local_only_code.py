@@ -98,36 +98,10 @@ def check_unpushed_branches(repo_path, branches):
         if not branch.remote:
             continue
 
-        print(branch)
-        remote_commit = get_remote_head(repo_path, branch.remote, branch.remote_branch)
-        if remote_commit == branch.head:
-            # Local and remote head are equal
+        if not branch.ahead:
             continue
 
-        ahead, behind = get_ahead_status(repo_path, branch.name, branch.remote, branch.remote_branch)
-        yield branch.name, ahead, behind
-
-
-def get_remote_head(repo_path, remote, branch):
-    spec_path = os.path.join(repo_path, '.git', 'refs', remote, branch)
-    with open(spec_path) as fh:
-        return fh.read().strip()
-
-
-def get_ahead_status(repo_path, local_branch, remote, remote_branch):
-    '''Get two numbers, the amount of commits the local branch is ahead of the remote, and how
-    many branches behind it is.
-    '''
-    cmd = [
-        'git',
-        '-C', repo_path,
-        'rev-list',
-        '--left-right',
-        '--count',
-        '%s/%s...%s' % (remote, remote_branch, local_branch),
-    ]
-    left, right = [int(s) for s in subprocess.check_output(cmd).split()]
-    return left, right
+        yield branch.name, branch.ahead, branch.behind
 
 
 def get_command_output_lines(cmd):
