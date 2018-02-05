@@ -1,0 +1,8 @@
+#!/bin/sh
+
+main() {
+    test -d venv || virtualenv venv
+    ./venv/bin/pip install pytest
+}
+
+main
