@@ -16,6 +16,13 @@ BRANCH_DETAILS_RE = re.compile(r'^\*?\s+(?P<name>[^ ]+)\s+(?P<head>\w+) (?P<stat
 BRANCH_STATE_RE = re.compile(r'\[(?P<remote>[\w-]+)\/(?P<remote_branch>[^:\]]+):?\s?(?:ahead (?P<ahead>\d+))?,?\s?(?:behind (?P<behind>\d+))?\]\s.*$')
 Branch = namedtuple('Branch', 'name head remote remote_branch ahead behind')
 
+class ProcessFailed(Exception):
+    def __init__(self, message, returncode, stderr):
+        self.message = message
+        self.returncode = returncode
+        self.stderr = stderr
+
+
 def main():
     args = get_args()
     for repo in args.repositories:
@@ -23,7 +30,15 @@ def main():
 
 
 def scan_repo(repo_path):
-    stashes = check_stashes(repo_path)
+    try:
+        stashes = check_stashes(repo_path)
+    except ProcessFailed as e:
+        if e.returncode == 128:
+            print('%s is not a git repo' % repo_path)
+        else:
+            print('Got unknown error when checking stashes in %s' % repo_path)
+        return
+
     if stashes:
         print('%s has %d stashes' % (repo_path, stashes))
 
@@ -120,7 +135,12 @@ def check_untracked_files(repo_path):
 
 
 def get_command_output_lines(cmd):
-    return subprocess.check_output(cmd).split('\n')[:-1]
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    if process.returncode != 0:
+        raise ProcessFailed('Subprocess failed', process.returncode, stderr)
+
+    return stdout.split('\n')[:-1]
 
 
 def get_args():
