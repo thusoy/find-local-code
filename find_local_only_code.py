@@ -129,6 +129,7 @@ def check_untracked_files(repo_path):
         '-C', repo_path,
         'ls-files',
         '--others',
+        '--directory',
         '--exclude-standard',
     ]
     return get_command_output_lines(cmd)
