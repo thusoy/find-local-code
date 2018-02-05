@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-# Looks for code that hasn't pushed to upstream in stash, local-only branches,
-# branches with unpushed commits, and uncommitted files. write in python to
-# easily enable cli parsing to only scan for/ignore subsets of these
+'''
+Looks for code that hasn't pushed to upstream in stash, local-only branches,
+branches with unpushed commits, and uncommitted files.
+'''
 
 import argparse
 import os
