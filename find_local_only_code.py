@@ -12,7 +12,7 @@ import os
 from collections import namedtuple
 
 BRANCH_DETAILS_RE = re.compile(r'^\*?\s+(?P<name>[^ ]+)\s+(?P<head>\w+) (?P<state>.+)$')
-BRANCH_STATE_RE = re.compile(r'^\[(?P<remote>[\w-]+)\/(?P<remote_branch>[^\]]+)\]\s.*$')
+BRANCH_STATE_RE = re.compile(r'\[(?P<remote>[\w-]+)\/(?P<remote_branch>[^:\]]+):?\s?(?:ahead (?P<ahead>\d+))?,?\s?(?:behind (?P<behind>\d+))?\]\s.*$')
 Branch = namedtuple('Branch', 'name head remote remote_branch ahead behind')
 
 def main():
@@ -58,21 +58,30 @@ def get_branches(repo_path):
         '-vv',
     ]
     raw_branches = get_command_output_lines(cmd)
-    for branch_details in raw_branches:
+    return parse_git_branch_output(raw_branches)
+
+
+def parse_git_branch_output(branch_output):
+    for branch_details in branch_output:
         match = BRANCH_DETAILS_RE.match(branch_details)
         if not match:
             sys.stderr.write("Branch output didn't match: %s\n" % branch_details)
             continue
 
-        state = match.group('state')
+        groups = match.groupdict()
+        state = groups['state']
+        name = groups['name']
+        head = groups['head']
+
         remote_match = BRANCH_STATE_RE.match(state)
-        name = match.group('name')
-        head = match.group('head')
 
         if remote_match:
-            yield Branch(name, head, remote_match.group('remote'), remote_match.group('remote_branch'))
+            remote_groups = remote_match.groupdict(default='0')
+            ahead = int(remote_groups.get('ahead'))
+            behind = int(remote_groups.get('behind'))
+            yield Branch(name, head, remote_match.group('remote'), remote_match.group('remote_branch'), ahead, behind)
         else:
-            yield Branch(name, head, None, None)
+            yield Branch(name, head, None, None, 0, 0)
 
 
 def check_local_only_branches(branches):
