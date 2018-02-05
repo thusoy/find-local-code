@@ -37,7 +37,6 @@ def scan_repo(repo_path):
         trailer = ' (and %d behind)' % behind if behind else ''
         print('%s has branch %s which is %s commits ahead%s' % (
             repo_path, branch, ahead, trailer))
-# TODO: Branches with conflicts
 
 
 def check_stashes(repo_path):
