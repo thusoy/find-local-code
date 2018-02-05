@@ -124,7 +124,7 @@ def get_command_output_lines(cmd):
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('repositories', nargs='+')
     return parser.parse_args()
 
