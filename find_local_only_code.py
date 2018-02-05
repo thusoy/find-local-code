@@ -5,10 +5,10 @@
 # easily enable cli parsing to only scan for/ignore subsets of these
 
 import argparse
-import subprocess
-import re
-import sys
 import os
+import re
+import subprocess
+import sys
 from collections import namedtuple
 
 BRANCH_DETAILS_RE = re.compile(r'^\*?\s+(?P<name>[^ ]+)\s+(?P<head>\w+) (?P<state>.+)$')
