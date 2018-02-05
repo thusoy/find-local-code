@@ -38,6 +38,10 @@ def scan_repo(repo_path):
         print('%s has branch %s which is %s commits ahead%s' % (
             repo_path, branch, ahead, trailer))
 
+    untracked_files = check_untracked_files(repo_path)
+    for untracked_file in untracked_files:
+        print('%s has untracked file %s' % (repo_path, untracked_file))
+
 
 def check_stashes(repo_path):
     cmd = [
@@ -101,6 +105,17 @@ def check_unpushed_branches(repo_path, branches):
             continue
 
         yield branch.name, branch.ahead, branch.behind
+
+
+def check_untracked_files(repo_path):
+    cmd = [
+        'git',
+        '-C', repo_path,
+        'ls-files',
+        '--others',
+        '--exclude-standard',
+    ]
+    return get_command_output_lines(cmd)
 
 
 def get_command_output_lines(cmd):
