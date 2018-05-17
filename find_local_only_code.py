@@ -58,6 +58,10 @@ def scan_repo(repo_path):
     for untracked_file in untracked_files:
         print('%s has untracked file %s' % (repo_path, untracked_file))
 
+    modified_files = check_modified_files(repo_path)
+    for modified_file in modified_files:
+        print('%s has modified file %s' % (repo_path, modified_file))
+
 
 def check_stashes(repo_path):
     cmd = [
@@ -131,6 +135,16 @@ def check_untracked_files(repo_path):
         '--others',
         '--directory',
         '--exclude-standard',
+    ]
+    return get_command_output_lines(cmd)
+
+
+def check_modified_files(repo_path):
+    cmd = [
+        'git',
+        '-C', repo_path,
+        'ls-files',
+        '-m'
     ]
     return get_command_output_lines(cmd)
 
