@@ -48,7 +48,7 @@ def scan_repo(repo_path):
     for branch in local_only_branches:
         print('%s has local-only branch %s' % (repo_path, branch))
 
-    unpushed_branches = check_unpushed_branches(repo_path, branches)
+    unpushed_branches = list(check_unpushed_branches(repo_path, branches))
     for branch, ahead, behind in unpushed_branches:
         trailer = ' (and %d behind)' % behind if behind else ''
         print('%s has branch %s which is %s commits ahead%s' % (
@@ -62,6 +62,9 @@ def scan_repo(repo_path):
     for modified_file in modified_files:
         print('%s has modified file %s' % (repo_path, modified_file))
 
+    if not (stashes or local_only_branches or unpushed_branches or untracked_files
+            or modified_files):
+        print('%s is up to date' % repo_path)
 
 def check_stashes(repo_path):
     cmd = [
