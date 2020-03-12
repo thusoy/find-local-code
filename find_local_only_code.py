@@ -44,9 +44,9 @@ def scan_repo(repo_path):
 
     branches = list(get_branches(repo_path))
 
-    local_only_branches = check_local_only_branches(branches)
-    for branch in local_only_branches:
-        print('%s has local-only branch %s' % (repo_path, branch))
+    local_only_branches = check_local_only_branches(repo_path, branches)
+    for branch, commit_count in local_only_branches:
+        print('%s has local-only branch %s (%d commits)' % (repo_path, branch, commit_count))
 
     unpushed_branches = list(check_unpushed_branches(repo_path, branches))
     for branch, ahead, behind in unpushed_branches:
@@ -110,11 +110,23 @@ def parse_git_branch_output(branch_output):
             yield Branch(name, head, None, None, 0, 0)
 
 
-def check_local_only_branches(branches):
+def check_local_only_branches(repo_path, branches):
     local_only_branches = []
     for branch in branches:
         if not branch.remote:
-            local_only_branches.append(branch.name)
+            # Check that there are commits on this branch that aren't already
+            # on master
+            cmd = [
+                'git',
+                '-C', repo_path,
+                'log',
+                '--oneline',
+                '^master',
+                branch.name,
+            ]
+            commit_count = len(get_command_output_lines(cmd))
+            if commit_count:
+                local_only_branches.append((branch.name, commit_count))
 
     return local_only_branches
 
