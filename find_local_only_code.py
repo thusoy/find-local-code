@@ -151,7 +151,16 @@ def check_untracked_files(repo_path):
         '--directory',
         '--exclude-standard',
     ]
-    return get_command_output_lines(cmd)
+    untracked_files = get_command_output_lines(cmd)
+    for untracked_file in untracked_files:
+        # Filter out empty directories
+        try:
+            contents = os.listdir(os.path.join(repo_path, untracked_file))
+            if not contents:
+                continue
+            yield untracked_file
+        except:
+            yield untracked_file
 
 
 def check_modified_files(repo_path):
